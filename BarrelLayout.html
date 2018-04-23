@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>木桶流布局</title>
+    <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+    <style>
+            * {
+              margin: 0;
+              padding: 0;
+            }
+        
+        
+            .img-preview{
+              width: 1500px;
+              margin: 0 auto;
+            }
+        
+            .img-row {
+              margin-bottom: 8px;
+            }
+        
+            .img-row:after {
+              content: "";
+              display: block;
+              clear: both;
+            }
+        
+            .img-box {
+              float: left;
+            }
+        
+            .img-line .img-box:first-child {
+              padding-left: 0;
+            }
+          </style>
+</head>
+<body>
+    <div class="img-preview">
+    </div>
+    <script>
+        function Barrel($ct){
+            this.$ct= $ct
+            this.rowList = []
+            this.loadimg()
+        }
+        Barrel.prototype={
+            loadimg:function(){
+                var _this = this
+                var imgs = this.getImgUrls(10)
+                
+                for(var i=0;i<imgs.length;i++){
+                    //var _this = this
+                    var img = new Image()
+                    img.src = imgs[i]
+                    console.log(imgs[i])
+                    img.onload = function(){
+                        var imgInfo = {
+                            target:this,
+                            width:200*(this.width/this.height),
+                            height:200
+                        }
+                        _this.render(imgInfo)
+                        console.log(imgInfo)
+                    }
+                }
+            },
+            getImgUrls:function(num){
+                var color, width, height, urls = []
+                for(var i= 0;i<num;i++){
+                    color = Math.random().toString(16).substring(2,8)
+                    width = Math.floor(Math.random()* 100 + 50)
+                    height = Math.floor(Math.random()* 30 + 50)
+                    urls.push("http://placehold.it/"+width+"x"+height+"/"+color+"/fff")
+                }
+                return urls
+            },
+            render:function(imgInfo){
+                var rowList = this.rowList
+                var clientWidth = this.$ct.width()
+                var rowWitdh = 0
+                var lastImgInfo = imgInfo
+                var newRowHeight = 0
+                this.rowList.push(imgInfo)
+               // console.log(this.rowList)
+                for(var i=0;i<this.rowList.length;i++){
+                    rowWitdh= rowWitdh+this.rowList[i].width
+                    console.log("图片宽度"+rowList[i].width)
+                }
+                //console.log(rowWitdh)
+                //console.log(clientWidth)
+                if(rowWitdh > clientWidth){ //如果超出宽度，把最后一个图片拿出，作为下次使用
+                    this.rowList.pop()
+                    rowWitdh = rowWitdh -lastImgInfo.width
+                    newRowHeight = clientWidth*200/rowWitdh
+                    this.layout(newRowHeight)
+                    this.rowList = []
+                    this.rowList.push(imgInfo)
+                }
+            },
+            layout:function(newRowHeight){
+                 var $rowCt = $('<div class="img-row"></div>')
+                 $.each(this.rowList,function(idx,imgInfo){
+                     var $imgCt = $('<div class="img-box"></div>')
+                     var $img = $(imgInfo.target)
+                     $img.height(newRowHeight)
+                     $imgCt.append($img)
+                     $rowCt.append($imgCt)
+                 })
+                 this.$ct.append($rowCt)
+            }
+        }
+        var barrels = new Barrel($('.img-preview'))
+    </script>
+</body>
+</html>
